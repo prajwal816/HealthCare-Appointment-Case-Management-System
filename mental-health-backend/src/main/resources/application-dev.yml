@@ -17,6 +17,9 @@ spring:
       mail.smtp.auth: false
       mail.smtp.starttls.enable: false
 
+server:
+  port: 8081
+
 app:
   jwt:
     secret: dev-secret-key-minimum-32-characters-long-for-local
