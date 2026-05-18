@@ -1,0 +1,13 @@
+package com.cimhans.domain.enums;
+
+public enum AppointmentType {
+    INITIAL_CONSULTATION,
+    FOLLOW_UP,
+    PSYCHOTHERAPY,
+    PSYCHIATRIC_EVALUATION,
+    MEDICATION_REVIEW,
+    GROUP_THERAPY,
+    FAMILY_THERAPY,
+    CRISIS_INTERVENTION,
+    DISCHARGE_PLANNING
+}
