@@ -2,10 +2,11 @@ import api from './axiosInstance'
 
 // ===== AUTH =====
 export const authApi = {
-  login: (data) => api.post('/auth/login', data),
-  register: (data) => api.post('/auth/register', data),
-  refresh: (refreshToken) => api.post('/auth/refresh', { refreshToken }),
-  logout: () => api.post('/auth/logout'),
+  login:       (data)        => api.post('/auth/login', data),
+  register:    (data)        => api.post('/auth/register', data),
+  googleLogin: (credential)  => api.post('/auth/google', { credential }),
+  refresh:     (refreshToken)=> api.post('/auth/refresh', { refreshToken }),
+  logout:      ()            => api.post('/auth/logout'),
 }
 
 // ===== PATIENTS =====
