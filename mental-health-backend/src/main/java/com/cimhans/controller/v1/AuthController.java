@@ -1,5 +1,6 @@
 package com.cimhans.controller.v1;
 
+import com.cimhans.dto.request.GoogleAuthRequest;
 import com.cimhans.dto.request.LoginRequest;
 import com.cimhans.dto.request.RegisterRequest;
 import com.cimhans.dto.response.ApiResponse;
@@ -34,11 +35,18 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Register a new user")
+    @Operation(summary = "Register a new patient account")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest request) {
         authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok("User registered successfully. Please login.", null));
+    }
+
+    @PostMapping("/google")
+    @Operation(summary = "Sign in or register with Google OAuth")
+    public ResponseEntity<ApiResponse<AuthResponse>> googleAuth(@RequestBody GoogleAuthRequest request) {
+        AuthResponse response = authService.googleLogin(request.getCredential());
+        return ResponseEntity.ok(ApiResponse.ok("Google authentication successful", response));
     }
 
     @PostMapping("/refresh")

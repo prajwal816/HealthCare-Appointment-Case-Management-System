@@ -3,6 +3,7 @@ package com.cimhans.service;
 import com.cimhans.domain.entity.RefreshToken;
 import com.cimhans.domain.entity.User;
 import com.cimhans.domain.enums.NotificationType;
+import com.cimhans.domain.enums.Role;
 import com.cimhans.dto.request.LoginRequest;
 import com.cimhans.dto.request.RegisterRequest;
 import com.cimhans.dto.response.AuthResponse;
@@ -12,6 +13,7 @@ import com.cimhans.exception.UnauthorizedException;
 import com.cimhans.repository.RefreshTokenRepository;
 import com.cimhans.repository.UserRepository;
 import com.cimhans.security.JwtTokenProvider;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,11 +23,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -43,6 +48,8 @@ public class AuthService {
 
     @Value("${app.jwt.refresh-token-expiry}")
     private long refreshTokenExpiry;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
@@ -97,6 +104,66 @@ public class AuthService {
                 user.getId(), "User");
 
         return user;
+    }
+
+    /**
+     * Google OAuth flow: frontend sends the access_token, we verify it via
+     * Google's userinfo endpoint, then find-or-create the user and issue JWT.
+     */
+    @Transactional
+    public AuthResponse googleLogin(String accessToken) {
+        // Verify token and fetch profile from Google
+        String url = "https://www.googleapis.com/oauth2/v3/userinfo";
+        Map<?, ?> profile;
+        try {
+            profile = restTemplate.getForObject(
+                url + "?access_token=" + accessToken, Map.class);
+        } catch (Exception e) {
+            throw new UnauthorizedException("Invalid Google token");
+        }
+        if (profile == null || profile.get("email") == null) {
+            throw new UnauthorizedException("Could not retrieve Google profile");
+        }
+
+        String email      = (String) profile.get("email");
+        String firstName  = (String) profile.getOrDefault("given_name",  "Google");
+        String lastName   = (String) profile.getOrDefault("family_name", "User");
+        boolean verified  = Boolean.TRUE.equals(profile.get("email_verified"));
+
+        // Find existing user or create new PATIENT account
+        Optional<User> existing = userRepository.findByEmailAndDeletedAtIsNull(email);
+        User user;
+        if (existing.isPresent()) {
+            user = existing.get();
+            if (!user.isActive()) throw new UnauthorizedException("Account deactivated. Contact administrator.");
+        } else {
+            user = User.builder()
+                    .email(email)
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
+                    .role(Role.PATIENT)
+                    .isActive(true)
+                    .isEmailVerified(verified)
+                    .build();
+            user = userRepository.saveAndFlush(user);
+            log.info("New user created via Google OAuth: {}", email);
+        }
+
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        String jwtAccessToken = jwtTokenProvider.generateAccessToken(user);
+        String rawRefreshToken = jwtTokenProvider.generateRefreshTokenValue();
+        RefreshToken refreshToken = RefreshToken.builder()
+                .user(user)
+                .tokenHash(hashToken(rawRefreshToken))
+                .expiresAt(LocalDateTime.now().plusNanos(refreshTokenExpiry * 1_000_000))
+                .build();
+        refreshTokenRepository.save(refreshToken);
+
+        log.info("Google OAuth login: {}", email);
+        return buildAuthResponse(user, jwtAccessToken, rawRefreshToken);
     }
 
     @Transactional
