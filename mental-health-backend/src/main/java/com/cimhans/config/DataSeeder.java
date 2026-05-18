@@ -70,14 +70,17 @@ public class DataSeeder implements ApplicationRunner {
                 .passwordHash(passwordEncoder.encode("Doctor@123"))
                 .isActive(true)
                 .build();
-        userRepository.save(therapistUser);
+        // saveAndFlush ensures the User has a DB-assigned ID before Therapist references it
+        therapistUser = userRepository.saveAndFlush(therapistUser);
 
         Therapist therapist = Therapist.builder()
                 .user(therapistUser)
                 .specialization(TherapistSpecialization.PSYCHIATRY)
                 .licenseNumber("PSY-2024-001")
+                .qualification("MBBS, MD Psychiatry")
+                .consultationFeeInr(500.0)
+                .maxPatientsPerDay(8)
                 .isAvailable(true)
-                .maxDailyAppointments(8)
                 .build();
         therapistRepository.save(therapist);
         log.info("✅ Therapist seeded: doctor@cimhans.com / Doctor@123");
