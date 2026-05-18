@@ -26,23 +26,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
 
     @Query("SELECT a FROM Appointment a WHERE a.therapist.id = :therapistId " +
            "AND a.appointmentDate = :date AND a.deletedAt IS NULL " +
-           "AND a.status NOT IN ('CANCELLED', 'NO_SHOW') ORDER BY a.startTime")
+           "AND a.status NOT IN ('CANCELLED','NO_SHOW') ORDER BY a.startTime")
     List<Appointment> findTherapistScheduleForDate(@Param("therapistId") UUID therapistId,
                                                     @Param("date") LocalDate date);
 
-    @Query("SELECT a FROM Appointment a WHERE a.therapist.id = :therapistId " +
-           "AND a.appointmentDate BETWEEN :from AND :to AND a.deletedAt IS NULL " +
-           "AND a.status NOT IN ('CANCELLED', 'NO_SHOW') ORDER BY a.appointmentDate, a.startTime")
-    List<Appointment> findTherapistAppointmentsInRange(@Param("therapistId") UUID therapistId,
-                                                        @Param("from") LocalDate from,
-                                                        @Param("to") LocalDate to);
-
-    @Query("SELECT a FROM Appointment a WHERE a.patient.id = :patientId " +
-           "AND a.appointmentDate >= :from AND a.deletedAt IS NULL ORDER BY a.appointmentDate DESC")
-    Page<Appointment> findUpcomingForPatient(@Param("patientId") UUID patientId,
-                                             @Param("from") LocalDate from, Pageable pageable);
-
-    /** Used by reminder scheduler — finds confirmed appointments 24 hours ahead that haven't been notified */
     @Query("SELECT a FROM Appointment a WHERE a.status = 'CONFIRMED' AND a.isReminderSent = false " +
            "AND a.deletedAt IS NULL AND a.appointmentDate = :tomorrow")
     List<Appointment> findAppointmentsForReminder(@Param("tomorrow") LocalDate tomorrow);
@@ -51,10 +38,26 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
     long countByStatus(@Param("status") AppointmentStatus status);
 
     @Query("SELECT COUNT(a) FROM Appointment a WHERE a.deletedAt IS NULL " +
+           "AND a.appointmentDate = :date AND a.status NOT IN ('CANCELLED','NO_SHOW')")
+    long countByStatusAndDate(@Param("date") LocalDate date);
+
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.deletedAt IS NULL " +
+           "AND a.appointmentDate = :date AND a.status = 'COMPLETED'")
+    long countCompletedOnDate(@Param("date") LocalDate date);
+
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.deletedAt IS NULL " +
+           "AND a.status = 'CANCELLED' AND a.updatedAt BETWEEN :from AND :to")
+    long countCancelledInPeriod(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.deletedAt IS NULL " +
+           "AND a.status = 'COMPLETED' AND a.updatedAt BETWEEN :from AND :to")
+    long countCompletedInPeriod(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.deletedAt IS NULL " +
+           "AND a.status = 'NO_SHOW' AND a.updatedAt BETWEEN :from AND :to")
+    long countNoShowInPeriod(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.deletedAt IS NULL " +
            "AND a.createdAt BETWEEN :from AND :to")
     long countCreatedBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
-
-    @Query("SELECT a.status, COUNT(a) FROM Appointment a WHERE a.deletedAt IS NULL " +
-           "AND a.appointmentDate BETWEEN :from AND :to GROUP BY a.status")
-    List<Object[]> getStatusBreakdownForPeriod(@Param("from") LocalDate from, @Param("to") LocalDate to);
 }
