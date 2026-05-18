@@ -2,32 +2,32 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/mental_health_db
     username: postgres
-    password: postgres
+    password: Whitedevil411@
   data:
     redis:
       host: localhost
       port: 6379
-      password: CHANGE_ME_REDIS_PASSWORD
+      password: Whitedevil411@
   mail:
-    host: smtp.mailtrap.io
-    port: 2525
-    username: ''
-    password: ''
+    host: smtp.gmail.com
+    port: 587
+    username: prajwalimmadi103@gmail.com
+    password: dcnoqeqpuwqjbmsp
     properties:
-      mail.smtp.auth: false
-      mail.smtp.starttls.enable: false
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 server:
   port: 8081
 
 app:
   jwt:
-    secret: dev-secret-key-minimum-32-characters-long-for-local
+    secret: wLr7eRk1Dk29uL9YhYd0s2vVxTzR3cM8NfK1pQ7aBcX9Lm
     access-token-expiry: 900000
     refresh-token-expiry: 604800000
     issuer: cimhans-dev
   encryption:
-    secret-key: DevEncryptKey123
+    secret-key: 1234567890ABCDEF
   frontend-url: http://localhost:5173
 
 logging:
