@@ -49,7 +49,6 @@ class AuthServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(authService, "refreshTokenExpiry", 604800000L);
         mockUser = User.builder()
-                .id(UUID.randomUUID())
                 .email("test@cimhans.com")
                 .firstName("Test")
                 .lastName("User")
@@ -57,6 +56,7 @@ class AuthServiceTest {
                 .passwordHash("$2a$12$hashed")
                 .isActive(true)
                 .build();
+        ReflectionTestUtils.setField(mockUser, "id", UUID.randomUUID());
     }
 
     @Test
