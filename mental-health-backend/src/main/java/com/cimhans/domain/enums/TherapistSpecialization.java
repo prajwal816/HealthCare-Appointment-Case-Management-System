@@ -1,0 +1,13 @@
+package com.cimhans.domain.enums;
+
+public enum TherapistSpecialization {
+    PSYCHIATRY,
+    CLINICAL_PSYCHOLOGY,
+    COUNSELING_PSYCHOLOGY,
+    CHILD_PSYCHOLOGY,
+    NEUROPSYCHOLOGY,
+    ADDICTION_COUNSELING,
+    TRAUMA_THERAPY,
+    CBT_SPECIALIST,
+    OCCUPATIONAL_THERAPY
+}

@@ -1,0 +1,12 @@
+package com.cimhans.domain.enums;
+
+public enum NotificationType {
+    APPOINTMENT_REMINDER,
+    APPOINTMENT_CONFIRMED,
+    APPOINTMENT_CANCELLED,
+    APPOINTMENT_RESCHEDULED,
+    SESSION_NOTE_ADDED,
+    PRESCRIPTION_ADDED,
+    SYSTEM_ALERT,
+    WELCOME
+}
