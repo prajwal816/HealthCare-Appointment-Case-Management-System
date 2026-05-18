@@ -13,7 +13,7 @@ import com.cimhans.exception.UnauthorizedException;
 import com.cimhans.repository.RefreshTokenRepository;
 import com.cimhans.repository.UserRepository;
 import com.cimhans.security.JwtTokenProvider;
-import lombok.Data;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -114,9 +114,10 @@ public class AuthService {
     public AuthResponse googleLogin(String accessToken) {
         // Verify token and fetch profile from Google
         String url = "https://www.googleapis.com/oauth2/v3/userinfo";
-        Map<?, ?> profile;
+        @SuppressWarnings("unchecked")
+        Map<String, Object> profile;
         try {
-            profile = restTemplate.getForObject(
+            profile = (Map<String, Object>) restTemplate.getForObject(
                 url + "?access_token=" + accessToken, Map.class);
         } catch (Exception e) {
             throw new UnauthorizedException("Invalid Google token");
