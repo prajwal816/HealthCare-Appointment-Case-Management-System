@@ -39,6 +39,8 @@ public interface TherapistRepository extends JpaRepository<Therapist, UUID> {
            "AND s.slotDate = :date AND s.isBooked = false AND t.isAvailable = true")
     List<Therapist> findAvailableOnDate(@Param("date") LocalDate date);
 
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.therapist.id = :therapistId " +
+           "AND a.appointmentDate = :date AND a.status NOT IN ('CANCELLED', 'NO_SHOW')")
     long countBookedAppointmentsOnDate(@Param("therapistId") UUID therapistId,
                                        @Param("date") LocalDate date);
 
