@@ -33,6 +33,5 @@ app:
 logging:
   level:
     com.cimhans: DEBUG
-    org.springframework.security: TRACE
-    org.springframework.security.authentication: TRACE
+    org.springframework.security: INFO
     org.flywaydb: INFO
